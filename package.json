@@ -1,0 +1,23 @@
+{
+  "name": "waves-ts",
+  "version": "1.0.0",
+  "description": "ripple waves in browser, using typescript and webgl",
+  "main": "main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "y"
+  },
+  "author": "GeniusIsme",
+  "license": "MIT",
+  "devDependencies": {
+    "file-loader": "^1.1.5",
+    "raw-loader": "^0.5.1",
+    "ts-loader": "^3.2.0",
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0"
+  }
+}
