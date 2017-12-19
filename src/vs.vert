@@ -10,17 +10,25 @@ uniform float starts[max_ripples];
 
 varying vec3 position;
 
-float get_z(vec3 pos) {
+float z_of_wave(float amplitude, vec3 center, float start, vec3 at_pos) {
     const float wave_length = 0.3; // units
     const float dist_kf = 2.0 * pi / wave_length;
     const float wave_speed = 0.3; // units per sec
     const float time_kf = -2.0 * pi / (wave_length / wave_speed);
     const float to_seconds = 0.001;
 
-    float dist = length(centers[0] - pos);
-    float time = to_seconds * (time - starts[0]);
+    float dist = length(center - at_pos);
+    float time = to_seconds * (time - start);
 
-    return amplitudes[0] * sin(dist_kf * dist + time_kf * time );
+    return amplitude * sin(dist_kf * dist + time_kf * time );
+}
+
+float get_z(vec3 at_pos) {
+    float sum = 0.0;
+    for (int i = 0; i < max_ripples; ++i) {
+        sum += z_of_wave(amplitudes[i], centers[i], starts[i], at_pos);
+    }
+    return sum;
 }
 
 void main(void) {

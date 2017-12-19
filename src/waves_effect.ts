@@ -10,7 +10,7 @@ export class WavesEffect {
         this.setup_initial_ripples()
     }
 
-    setup_program() {
+    private setup_program() {
         let vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
         this.gl.shaderSource(vertShader, vs)
         this.gl.compileShader(vertShader)
@@ -33,20 +33,25 @@ export class WavesEffect {
         this.program = program
     }
 
-    setup_initial_ripples() {
-        this.amplitudes = new Float32Array(max_ripples)
-        this.centers = new Float32Array(max_ripples * 3)
-        this.starts = new Float32Array(max_ripples)
-
-        this.amplitudes[0] = 1.0
-        this.starts[0] = 0.0
-        this.centers[0] = 0.55
-        this.centers[1] = 0.55
-        this.centers[2] = 0.00
+    private setup_initial_ripples() {
+        this.add_ripple(0.8, [0.55, 0.55, 0.00], 0.0)
+        this.add_ripple(0.3, [0.1, 0.1, 0.0], 0.0)
     }
 
     set_time(time: number) {
         this.time = time
+    }
+
+    add_ripple(amplitude: number, center: [number, number, number], start: number) {
+        let next = this.next_ripple
+        this.amplitudes[next] = amplitude
+        let [x, y, z] = center
+        this.centers[next * 3 + 0] = x
+        this.centers[next * 3 + 1] = y
+        this.centers[next * 3 + 2] = z
+        this.starts[next] = start
+
+        this.next_ripple = (next + 1) % max_ripples
     }
 
     enable() {
@@ -68,7 +73,8 @@ export class WavesEffect {
     private program: WebGLProgram
     private gl: WebGLRenderingContext
 
-    private amplitudes: Float32Array
-    private centers: Float32Array
-    private starts: Float32Array
+    private amplitudes = new Float32Array(max_ripples)
+    private centers = new Float32Array(max_ripples * 3)
+    private starts = new Float32Array(max_ripples)
+    private next_ripple = 0;
 }
