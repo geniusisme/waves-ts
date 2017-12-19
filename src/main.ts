@@ -1,7 +1,7 @@
 import {DetailedSquare} from "./detailed_square";
 
-import * as vs from './vs.glsl';
-import * as fs from './fs.glsl';
+import * as vs from './vs.vert';
+import * as fs from './fs.frag';
 
 window.onload = () => {
     let app = new Application(document.getElementById('my_Canvas'));
@@ -42,6 +42,7 @@ class Application {
         this.gl.useProgram(shaderProgram);
 
         this.coord_attrib = this.gl.getAttribLocation(shaderProgram, "coordinates");
+        this.time_uniform = this.gl.getUniformLocation(shaderProgram, "time");
 
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
     }
@@ -52,6 +53,7 @@ class Application {
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
             this.gl.vertexAttribPointer(this.coord_attrib, 3, this.gl.FLOAT, false, 0, 0);
             this.gl.enableVertexAttribArray(this.coord_attrib);
+            this.gl.uniform1f(this.time_uniform, performance.now());
             this.gl.clearColor(0.3, 0.1, 0.1, 1.0);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
@@ -79,6 +81,7 @@ class Application {
     private index_buffer: any;
     private coord_attrib: any;
     private gl: any;
+    private time_uniform: any;
     private frameRequest: number;
     private water: DetailedSquare;
 }

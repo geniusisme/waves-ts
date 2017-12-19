@@ -7,7 +7,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.glsl$/,
+        test: /\.(frag|vert)$/,
         use: 'raw-loader'
       },
       {
@@ -18,7 +18,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: [ '.glsl', '.tsx', '.ts' ]
+    extensions: [ '.tsx', '.ts', 'frag', 'vert' ]
   },
   output: {
     filename: 'bundle.js',
