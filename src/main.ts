@@ -1,7 +1,7 @@
 import {DetailedSquare} from "./detailed_square";
+import {WavesEffect} from "./waves_effect";
 
-import * as vs from './vs.vert';
-import * as fs from './fs.frag';
+
 
 window.onload = () => {
     let app = new Application(document.getElementById('my_Canvas'));
@@ -27,33 +27,20 @@ class Application {
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, this.water.indices, this.gl.STATIC_DRAW);
 
-        let vertShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-        this.gl.shaderSource(vertShader, vs);
-        this.gl.compileShader(vertShader);
-
-        let fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-        this.gl.shaderSource(fragShader, fs);
-        this.gl.compileShader(fragShader);
-
-        let shaderProgram = this.gl.createProgram();
-        this.gl.attachShader(shaderProgram, vertShader);
-        this.gl.attachShader(shaderProgram, fragShader);
-        this.gl.linkProgram(shaderProgram);
-        this.gl.useProgram(shaderProgram);
-
-        this.coord_attrib = this.gl.getAttribLocation(shaderProgram, "coordinates");
-        this.time_uniform = this.gl.getUniformLocation(shaderProgram, "time");
+        this.waves_effect = new WavesEffect(this.gl);
 
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
     }
 
     private start_rendering() {
-        let render = () => {
+        let render = (time: number) => {
+
+            this.waves_effect.set_time(time);
+            this.waves_effect.enable();
+
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-            this.gl.vertexAttribPointer(this.coord_attrib, 3, this.gl.FLOAT, false, 0, 0);
-            this.gl.enableVertexAttribArray(this.coord_attrib);
-            this.gl.uniform1f(this.time_uniform, performance.now());
+
             this.gl.clearColor(0.3, 0.1, 0.1, 1.0);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
@@ -61,7 +48,7 @@ class Application {
 
             this.frameRequest = requestAnimationFrame(render);
         }
-        render();
+        render(performance.now());
     }
 
     private setup_listeners() {
@@ -79,9 +66,8 @@ class Application {
     private canvas: any;
     private vertex_buffer: any;
     private index_buffer: any;
-    private coord_attrib: any;
     private gl: any;
-    private time_uniform: any;
     private frameRequest: number;
     private water: DetailedSquare;
+    private waves_effect: WavesEffect;
 }
