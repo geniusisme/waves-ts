@@ -7,6 +7,7 @@ uniform float time;
 uniform float amplitudes[max_ripples];
 uniform vec3 centers[max_ripples];
 uniform float starts[max_ripples];
+uniform mat4 matrix;
 
 varying vec3 position;
 
@@ -32,7 +33,9 @@ float get_z(vec3 at_pos) {
 }
 
 void main(void) {
-    position = vec3(coordinates.x, coordinates.y, get_z(coordinates));
-    gl_Position = vec4(coordinates, 1.0);
+
+    vec4 res = matrix * vec4(coordinates.x, coordinates.y, get_z(coordinates), 1.0);
+    position = vec3(coordinates.xy, get_z(coordinates));
+    gl_Position = res;
 }
 

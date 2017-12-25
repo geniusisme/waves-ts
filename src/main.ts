@@ -1,5 +1,6 @@
 import {DetailedSquare} from "./detailed_square"
 import {WavesEffect} from "./waves_effect"
+import {Vector, Matrix} from "./math"
 
 
 
@@ -12,8 +13,74 @@ class Application {
         this.canvas = canvas
         this.water = new DetailedSquare(0.99, 255)
         this.setup_gl_resources()
-        this.start_rendering()
+        this.setup_matrix()
         this.setup_listeners()
+        this.start_rendering()
+    }
+
+    private setup_matrix() {
+        let to_center = -0.5
+        let center_m = new Matrix([
+            1, 0, 0, to_center,
+            0, 1, 0, to_center,
+            0, 0, 1,         0,
+            0, 0, 0,         1,
+        ])
+
+        let tilt = Math.PI / 6.0
+        let tilt_c = Math.cos(tilt)
+        let tilt_s = Math.sin(tilt)
+        let tilt_m = new Matrix([
+            1,     0,       0, 0,
+            0,tilt_c, -tilt_s, 0,
+            0,tilt_s,  tilt_c, 0,
+            0,     0,       0, 1,
+        ])
+
+        let max_fov = Math.PI / 6
+        let tan_fov = Math.tan(max_fov/2)
+        let dist_fit_x = 1 / 2 / tan_fov
+        let y_size = 1 * Math.cos(tilt)
+        let tiled_dist = 1 * Math.sin(tilt) / 2
+        let dist_fit_y = y_size / 2 / tan_fov - tiled_dist
+        let fit_x = dist_fit_x < dist_fit_y
+        let camera_dist = fit_x? dist_fit_x: dist_fit_y
+        let little_closer = -0.1
+        camera_dist += little_closer
+
+        let camera_m = new Matrix([
+            1, 0, 0,            0,
+            0, 1, 0,            0,
+            0, 0, 1,  camera_dist,
+            0, 0, 0,            1,
+        ])
+
+
+        let z_min = camera_dist - 0.5
+        let z_max = camera_dist + 0.5
+
+        let z_mat = (z_min + z_max) / (z_max - z_min) / z_min
+        let zw_mat = - 2 * z_max
+        let w_mat = 1 / z_min
+
+        let fit_width = 1 / tan_fov / z_min
+        let xy_ratio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight
+
+        let x_mat = fit_x? fit_width: fit_width * xy_ratio
+        let y_mat = fit_x? fit_width / xy_ratio: fit_width
+
+        let proj_m = new Matrix ([
+            x_mat,     0,     0,      0,
+                0, y_mat,     0,      0,
+                0,     0, z_mat, zw_mat,
+                0,     0, w_mat,      0,
+        ])
+
+        this.matrix = proj_m.mul(camera_m).mul(tilt_m).mul(center_m)
+    }
+
+    private dist_to_fit_in_view(fov: number, size: number): number {
+        return size / 2 / Math.tan(fov / 2);
     }
 
     private setup_gl_resources() {
@@ -36,6 +103,7 @@ class Application {
         let render = (time: number) => {
 
             this.waves_effect.set_time(time)
+            this.waves_effect.set_matrix(this.matrix.transpose())
             this.waves_effect.enable()
 
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer)
@@ -91,8 +159,8 @@ class Application {
     }
 
     private time_to_wave_strengh(time: number) {
-        let strength = time / 1000.0 + 0.2
-        return strength > 1.0? 1.0: strength;
+        let strength = time / 10000.0 + 0.02
+        return strength > 0.05? 0.05: strength;
     }
 
     private mouse_to_world(x: number, y: number): [number, number, number] {
@@ -113,4 +181,5 @@ class Application {
     private water: DetailedSquare
     private waves_effect: WavesEffect
     private mouse_downed_at?: number
+    private matrix: Matrix
 }

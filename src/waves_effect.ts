@@ -1,3 +1,5 @@
+import {Matrix} from './math'
+
 import * as vs from './vs.vert'
 import * as fs from './fs.frag'
 
@@ -29,17 +31,21 @@ export class WavesEffect {
         this.amplitudes_uniform = this.gl.getUniformLocation(program, "amplitudes")!
         this.centers_uniform = this.gl.getUniformLocation(program, "centers")!
         this.starts_uniform = this.gl.getUniformLocation(program, "starts")!
+        this.matrix_uniform = this.gl.getUniformLocation(program, "matrix")!
 
         this.program = program
     }
 
     private setup_initial_ripples() {
-        this.add_ripple(0.8, [0.55, 0.55, 0.00], 0.0)
-        this.add_ripple(0.3, [0.1, 0.1, 0.0], 0.0)
+        this.add_ripple(0.03, [0.5, 0.5, 0.0], 0.0)
     }
 
     set_time(time: number) {
         this.time = time
+    }
+
+    set_matrix(matrix: Matrix) {
+        this.matrix = matrix
     }
 
     add_ripple(amplitude: number, center: [number, number, number], start: number) {
@@ -62,14 +68,17 @@ export class WavesEffect {
         this.gl.uniform1fv(this.amplitudes_uniform, this.amplitudes)
         this.gl.uniform3fv(this.centers_uniform, this.centers)
         this.gl.uniform1fv(this.starts_uniform, this.starts)
+        this.gl.uniformMatrix4fv(this.matrix_uniform, false, this.matrix.values)
     }
 
     private time: number
+    private matrix: Matrix
     private coord_attrib: GLuint
     private time_uniform: WebGLUniformLocation
     private amplitudes_uniform: WebGLUniformLocation
     private centers_uniform: WebGLUniformLocation
     private starts_uniform: WebGLUniformLocation
+    private matrix_uniform: WebGLUniformLocation
     private program: WebGLProgram
     private gl: WebGLRenderingContext
 
