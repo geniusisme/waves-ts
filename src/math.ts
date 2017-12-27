@@ -13,6 +13,18 @@ export class Vector {
 
     get z(): number { return this.coords[2] }
     set z(val) { this.coords[2] = val }
+
+    add(them: Vector): Vector {
+        return new Vector(this.x + them.x, this.y + them.y, this.z + them.z)
+    }
+
+    sub(them: Vector): Vector {
+        return new Vector(this.x - them.x, this.y - them.y, this.z - them.z)
+    }
+
+    mul(factor: number): Vector {
+        return new Vector(this.x * factor, this.y * factor, this.z * factor)
+    }
 }
 
 export class Matrix {
@@ -55,6 +67,19 @@ export class Matrix {
             }
         }
         return res
+    }
+
+    transform(vec: Vector): Vector {
+        let in_column = [...vec.coords, 1]
+        let out_column = [0, 0, 0, 0]
+
+        for (let row = 0; row < 4; ++row) {
+            for (let prod = 0; prod < 4; ++prod) {
+                out_column[row] += this.at(row, prod) * in_column[prod]
+            }
+        }
+        let w = out_column[3]
+        return new Vector(out_column[0] / w, out_column[1]/ w, out_column[2] / w)
     }
 
     transpose(): Matrix {

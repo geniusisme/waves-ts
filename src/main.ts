@@ -27,6 +27,13 @@ class Application {
             0, 0, 0,         1,
         ])
 
+        let center_inv = new Matrix([
+            1, 0, 0, -to_center,
+            0, 1, 0, -to_center,
+            0, 0, 1,          0,
+            0, 0, 0,          1,
+        ])
+
         let tilt = Math.PI / 6.0
         let tilt_c = Math.cos(tilt)
         let tilt_s = Math.sin(tilt)
@@ -35,6 +42,13 @@ class Application {
             0,tilt_c, -tilt_s, 0,
             0,tilt_s,  tilt_c, 0,
             0,     0,       0, 1,
+        ])
+
+        let tilt_inv = new Matrix([
+            1,      0,      0, 0,
+            0, tilt_c, tilt_s, 0,
+            0,-tilt_s, tilt_c, 0,
+            0,      0,      0, 1,
         ])
 
         let max_fov = Math.PI / 6
@@ -55,6 +69,12 @@ class Application {
             0, 0, 0,            1,
         ])
 
+        let camera_inv = new Matrix([
+            1, 0, 0,            0,
+            0, 1, 0,            0,
+            0, 0, 1, -camera_dist,
+            0, 0, 0,            1,
+        ])
 
         let z_min = camera_dist - 0.5
         let z_max = camera_dist + 0.5
@@ -76,7 +96,15 @@ class Application {
                 0,     0, w_mat,      0,
         ])
 
+        let proj_inv = new Matrix ([
+            1/x_mat,       0,        0,                   0,
+                  0, 1/y_mat,        0,                   0,
+                  0,       0,        0,             1/w_mat,
+                  0,       0, 1/zw_mat, -z_mat/w_mat/zw_mat,
+        ])
+
         this.matrix = proj_m.mul(camera_m).mul(tilt_m).mul(center_m)
+        this.inv_matrix = center_inv.mul(tilt_inv).mul(camera_inv).mul(proj_inv)
     }
 
     private dist_to_fit_in_view(fov: number, size: number): number {
@@ -163,14 +191,20 @@ class Application {
         return strength > 0.05? 0.05: strength;
     }
 
-    private mouse_to_world(x: number, y: number): [number, number, number] {
+    private mouse_to_world(x: number, y: number): Vector {
         let canvas_r = this.canvas.getBoundingClientRect()
         let canvas_x_y = [x - canvas_r.left, y - canvas_r.top]
         let screen_x_y = [
             canvas_x_y[0] * 2.0 / canvas_r.width - 1.0,
             canvas_x_y[1] * -2.0 / canvas_r.height + 1.0]
 
-        return [screen_x_y[0], screen_x_y[1], 0]
+        let on_screen = new Vector(screen_x_y[0], screen_x_y[1], -1)
+        let in_screen = new Vector(screen_x_y[0], screen_x_y[1], 0)
+        let on_scr_world = this.inv_matrix.transform(on_screen)
+        let in_scr_world = this.inv_matrix.transform(in_screen)
+        let shift = in_scr_world.sub(on_scr_world)
+        let factor = -on_scr_world.z / shift.z
+        return on_scr_world.add(shift.mul(factor))
     }
 
     private canvas: HTMLCanvasElement
@@ -182,4 +216,5 @@ class Application {
     private waves_effect: WavesEffect
     private mouse_downed_at?: number
     private matrix: Matrix
+    private inv_matrix: Matrix;
 }

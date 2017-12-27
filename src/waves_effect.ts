@@ -1,4 +1,4 @@
-import {Matrix} from './math'
+import {Vector, Matrix} from './math'
 
 import * as vs from './vs.vert'
 import * as fs from './fs.frag'
@@ -37,7 +37,7 @@ export class WavesEffect {
     }
 
     private setup_initial_ripples() {
-        this.add_ripple(0.03, [0.5, 0.5, 0.0], 0.0)
+        this.add_ripple(0.03, new Vector(0.5, 0.5, 0.0), 0.0)
     }
 
     set_time(time: number) {
@@ -48,10 +48,10 @@ export class WavesEffect {
         this.matrix = matrix
     }
 
-    add_ripple(amplitude: number, center: [number, number, number], start: number) {
+    add_ripple(amplitude: number, center: Vector, start: number) {
         let next = this.next_ripple
         this.amplitudes[next] = amplitude
-        let [x, y, z] = center
+        let [x, y, z] = center.coords
         this.centers[next * 3 + 0] = x
         this.centers[next * 3 + 1] = y
         this.centers[next * 3 + 2] = z
