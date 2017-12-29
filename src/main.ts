@@ -71,9 +71,6 @@ class Application {
         let fit_x = dist_fit_x < dist_fit_y
         let camera_dist = fit_x? dist_fit_x: dist_fit_y
 
-        let little_closer = -0.1
-        //camera_dist -= little_closer
-
         let camera_m = new Matrix([
             1, 0, 0,            0,
             0, 1, 0,            0,
@@ -175,6 +172,10 @@ class Application {
             let m_event = event as MouseEvent;
             this.mouse_up(m_event.clientX, m_event.clientY);
         })
+
+        window.addEventListener("resize", () => {
+            this.resize_viewport()
+        })
     }
 
     private mouse_up(x: number, y: number) {
@@ -210,6 +211,13 @@ class Application {
         let shift = in_scr_world.sub(on_scr_world)
         let factor = -on_scr_world.z / shift.z
         return on_scr_world.add(shift.mul(factor))
+    }
+
+    private resize_viewport() {
+        this.canvas.width = this.canvas.clientWidth
+        this.canvas.height = this.canvas.clientHeight
+        this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight)
+        this.setup_matrix()
     }
 
     private canvas: HTMLCanvasElement
