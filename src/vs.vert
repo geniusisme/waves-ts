@@ -13,17 +13,22 @@ varying vec3 position;
 varying vec3 normal;
 
 /// (x, y) is gradient and z is z position of the wave
-vec3 effect_of_wave(float amplitude, vec3 center, float start, vec3 at_pos) {
-    const float wave_length = 0.3; // units
+vec3 effect_of_wave(float amp, vec3 center, float start, vec3 at_pos) {
+    const float wave_length = 0.2; // units
     const float dist_kf = 2.0 * pi / wave_length;
-    const float wave_speed = 0.3; // units per sec
+    const float wave_speed = 0.4; // units per sec
     const float time_kf = -2.0 * pi / (wave_length / wave_speed);
     const float to_seconds = 0.001;
 
     float dist = length(at_pos - center);
-    float time = to_seconds * (time - start);
+    float dist_arg = dist_kf * dist;
+    float time_arg = time_kf * to_seconds * (time - start);
 
-    float wave_arg = dist_kf * dist + time_kf * time;
+    float wave_arg = dist_arg + time_arg;
+    if (wave_arg > 0.0) {
+        return vec3(0.0, 0.0, 0.0);
+    }
+    float amplitude = amp *  - exp(wave_arg * 0.02);
     vec3 gradient = (center - at_pos) / (dist + 0.000001) * amplitude * dist_kf * cos(wave_arg);
     gradient *= 1.0 - exp(-dist * 50.0);
     return vec3(gradient.xy, amplitude * sin(wave_arg));
@@ -41,6 +46,6 @@ void main(void) {
     vec3 effect = get_sum_effect(coordinates);
     normal = normalize(vec3(effect.xy, 1.0));
     position = vec3(coordinates.xy, effect.z);
-    gl_Position = matrix * vec4(coordinates.x, coordinates.y, effect.z, 1.0);
+    gl_Position = matrix * vec4(coordinates.x, coordinates.y, coordinates.z, 1.0);
 }
 

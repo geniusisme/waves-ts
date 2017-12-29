@@ -37,7 +37,7 @@ export class WavesEffect {
     }
 
     private setup_initial_ripples() {
-        this.add_ripple(0.03, new Vector(0.5, 0.5, 0.0), 0.0)
+        //this.add_ripple(0.03, new Vector(0.5, 0.5, 0.0), 0.0)
     }
 
     set_time(time: number) {

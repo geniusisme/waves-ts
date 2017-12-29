@@ -2,7 +2,7 @@ import {DetailedSquare} from "./detailed_square"
 import {WavesEffect} from "./waves_effect"
 import {Vector, Matrix} from "./math"
 
-
+const square_size = 1
 
 window.onload = () => {
     let app = new Application(document.getElementById('my_Canvas') as HTMLCanvasElement)
@@ -11,7 +11,7 @@ window.onload = () => {
 class Application {
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas
-        this.water = new DetailedSquare(0.99, 255)
+        this.water = new DetailedSquare(square_size, 255)
         this.setup_gl_resources()
         this.setup_matrix()
         this.setup_listeners()
@@ -19,7 +19,7 @@ class Application {
     }
 
     private setup_matrix() {
-        let to_center = -0.5
+        let to_center = -0.5 * square_size
         let center_m = new Matrix([
             1, 0, 0, to_center,
             0, 1, 0, to_center,
@@ -34,7 +34,7 @@ class Application {
             0, 0, 0,          1,
         ])
 
-        let tilt = Math.PI / 6.0
+        let tilt = Math.PI / 6
         let tilt_c = Math.cos(tilt)
         let tilt_s = Math.sin(tilt)
         let tilt_m = new Matrix([
@@ -52,15 +52,27 @@ class Application {
         ])
 
         let max_fov = Math.PI / 6
-        let tan_fov = Math.tan(max_fov/2)
-        let dist_fit_x = 1 / 2 / tan_fov
-        let y_size = 1 * Math.cos(tilt)
-        let tiled_dist = 1 * Math.sin(tilt) / 2
-        let dist_fit_y = y_size / 2 / tan_fov - tiled_dist
+        let tan_fov = Math.tan(max_fov / 2)
+        let tan_fov_x = tan_fov
+        let tan_fov_y = tan_fov
+        let xy_ratio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight
+        if (xy_ratio < 1) {
+            tan_fov_x = tan_fov_x * xy_ratio
+        } else {
+            tan_fov_y = tan_fov_y / xy_ratio
+        }
+
+        let y_proj = square_size * Math.cos(tilt)
+        let z_proj = square_size * Math.sin(tilt)
+
+        let dist_fit_x = 0.5 * (square_size / tan_fov_x - z_proj)
+        let dist_fit_y = 0.5 * (y_proj / tan_fov_y - z_proj)
+
         let fit_x = dist_fit_x < dist_fit_y
         let camera_dist = fit_x? dist_fit_x: dist_fit_y
+
         let little_closer = -0.1
-        camera_dist += little_closer
+        //camera_dist -= little_closer
 
         let camera_m = new Matrix([
             1, 0, 0,            0,
@@ -76,18 +88,15 @@ class Application {
             0, 0, 0,            1,
         ])
 
-        let z_min = camera_dist - 0.5
-        let z_max = camera_dist + 0.5
+        let z_min = camera_dist * 0.99 - 0.5 * z_proj
+        let z_max = camera_dist * 1.01 + 0.5 * z_proj
 
         let z_mat = (z_min + z_max) / (z_max - z_min) / z_min
-        let zw_mat = - 2 * z_max
+        let zw_mat = - 2 * z_max / (z_max - z_min)
         let w_mat = 1 / z_min
 
-        let fit_width = 1 / tan_fov / z_min
-        let xy_ratio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight
-
-        let x_mat = fit_x? fit_width: fit_width * xy_ratio
-        let y_mat = fit_x? fit_width / xy_ratio: fit_width
+        let x_mat = 1 / tan_fov_x / z_min
+        let y_mat = 1 / tan_fov_y / z_min
 
         let proj_m = new Matrix ([
             x_mat,     0,     0,      0,
@@ -105,10 +114,6 @@ class Application {
 
         this.matrix = proj_m.mul(camera_m).mul(tilt_m).mul(center_m)
         this.inv_matrix = center_inv.mul(tilt_inv).mul(camera_inv).mul(proj_inv)
-    }
-
-    private dist_to_fit_in_view(fov: number, size: number): number {
-        return size / 2 / Math.tan(fov / 2);
     }
 
     private setup_gl_resources() {
