@@ -4,7 +4,7 @@ const vec3 light_direction = vec3(0.3, 0.1, -1.0);
 const vec3 user_direction = vec3(0.0, -0.5, -5.0);
 const vec3 diffuse_color = vec3(0.3, 0.2, 0.8);
 const vec3 specular_color = vec3(1.0, 1.0, 1.0);
-const float smoothness = 1.5;
+const float smoothness = 4.0;
 
 varying vec3 position;
 varying vec3 normal;

@@ -34,7 +34,7 @@ class Application {
             0, 0, 0,          1,
         ])
 
-        let tilt = Math.PI / 6
+        let tilt = Math.PI / 3
         let tilt_c = Math.cos(tilt)
         let tilt_s = Math.sin(tilt)
         let tilt_m = new Matrix([
@@ -193,8 +193,8 @@ class Application {
     }
 
     private time_to_wave_strengh(time: number) {
-        let strength = time / 10000.0 + 0.02
-        return strength > 0.05? 0.05: strength;
+        let strength = time / 1000 * 2 + 0.1
+        return strength > 1? 1: strength;
     }
 
     private mouse_to_world(x: number, y: number): Vector {

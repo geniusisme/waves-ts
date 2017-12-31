@@ -4,7 +4,7 @@ const int max_ripples = 8;
 attribute vec3 coordinates;
 
 uniform float time;
-uniform float amplitudes[max_ripples];
+uniform float strengths[max_ripples];
 uniform vec3 centers[max_ripples];
 uniform float starts[max_ripples];
 uniform mat4 matrix;
@@ -13,11 +13,11 @@ varying vec3 position;
 varying vec3 normal;
 
 /// (x, y) is gradient and z is z position of the wave
-vec3 effect_of_wave(float amp, vec3 center, float start, vec3 at_pos) {
-    const float wave_length = 0.2; // units
-    const float dist_kf = 2.0 * pi / wave_length;
-    const float wave_speed = 0.4; // units per sec
-    const float time_kf = -2.0 * pi / (wave_length / wave_speed);
+vec3 effect_of_wave(float strength, vec3 center, float start, vec3 at_pos) {
+    float wave_length = 0.05 + 0.15 * strength; // units
+    float dist_kf = 2.0 * pi / wave_length;
+    float wave_speed = 0.2; // units per sec
+    float time_kf = -2.0 * pi / (wave_length / wave_speed);
     const float to_seconds = 0.001;
 
     float dist = length(at_pos - center);
@@ -28,7 +28,7 @@ vec3 effect_of_wave(float amp, vec3 center, float start, vec3 at_pos) {
     if (wave_arg > 0.0) {
         return vec3(0.0, 0.0, 0.0);
     }
-    float amplitude = amp *  - exp(wave_arg * 0.02);
+    float amplitude = strength * 0.1 * - exp(wave_arg * 0.02);
     vec3 gradient = (center - at_pos) / (dist + 0.000001) * amplitude * dist_kf * cos(wave_arg);
     gradient *= 1.0 - exp(-dist * 50.0);
     return vec3(gradient.xy, amplitude * sin(wave_arg));
@@ -37,7 +37,7 @@ vec3 effect_of_wave(float amp, vec3 center, float start, vec3 at_pos) {
 vec3 get_sum_effect(vec3 at_pos) {
     vec3 sum = vec3(0.0, 0.0, 0.0);
     for (int i = 0; i < max_ripples; ++i) {
-        sum += effect_of_wave(amplitudes[i], centers[i], starts[i], at_pos);
+        sum += effect_of_wave(strengths[i], centers[i], starts[i], at_pos);
     }
     return sum;
 }

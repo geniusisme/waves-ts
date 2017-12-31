@@ -28,7 +28,7 @@ export class WavesEffect {
 
         this.coord_attrib = this.gl.getAttribLocation(program, "coordinates")
         this.time_uniform = this.gl.getUniformLocation(program, "time")!
-        this.amplitudes_uniform = this.gl.getUniformLocation(program, "amplitudes")!
+        this.amplitudes_uniform = this.gl.getUniformLocation(program, "strengths")!
         this.centers_uniform = this.gl.getUniformLocation(program, "centers")!
         this.starts_uniform = this.gl.getUniformLocation(program, "starts")!
         this.matrix_uniform = this.gl.getUniformLocation(program, "matrix")!
@@ -48,9 +48,9 @@ export class WavesEffect {
         this.matrix = matrix
     }
 
-    add_ripple(amplitude: number, center: Vector, start: number) {
+    add_ripple(strength: number, center: Vector, start: number) {
         let next = this.next_ripple
-        this.amplitudes[next] = amplitude
+        this.strengths[next] = strength
         let [x, y, z] = center.coords
         this.centers[next * 3 + 0] = x
         this.centers[next * 3 + 1] = y
@@ -65,7 +65,7 @@ export class WavesEffect {
         this.gl.vertexAttribPointer(this.coord_attrib, 3, this.gl.FLOAT, false, 0, 0)
         this.gl.enableVertexAttribArray(this.coord_attrib)
         this.gl.uniform1f(this.time_uniform, this.time)
-        this.gl.uniform1fv(this.amplitudes_uniform, this.amplitudes)
+        this.gl.uniform1fv(this.amplitudes_uniform, this.strengths)
         this.gl.uniform3fv(this.centers_uniform, this.centers)
         this.gl.uniform1fv(this.starts_uniform, this.starts)
         this.gl.uniformMatrix4fv(this.matrix_uniform, false, this.matrix.values)
@@ -82,7 +82,7 @@ export class WavesEffect {
     private program: WebGLProgram
     private gl: WebGLRenderingContext
 
-    private amplitudes = new Float32Array(max_ripples)
+    private strengths = new Float32Array(max_ripples)
     private centers = new Float32Array(max_ripples * 3)
     private starts = new Float32Array(max_ripples)
     private next_ripple = 0;
