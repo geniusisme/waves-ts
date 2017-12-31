@@ -9,7 +9,6 @@ export class WavesEffect {
     constructor(gl: WebGLRenderingContext) {
         this.gl = gl
         this.setup_program()
-        this.setup_initial_ripples()
     }
 
     private setup_program() {
@@ -34,10 +33,6 @@ export class WavesEffect {
         this.matrix_uniform = this.gl.getUniformLocation(program, "matrix")!
 
         this.program = program
-    }
-
-    private setup_initial_ripples() {
-        //this.add_ripple(0.03, new Vector(0.5, 0.5, 0.0), 0.0)
     }
 
     set_time(time: number) {
