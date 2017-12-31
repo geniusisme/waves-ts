@@ -12,6 +12,19 @@ uniform mat4 matrix;
 varying vec3 position;
 varying vec3 normal;
 
+// smoothly activates process if current position is greater than activation position
+// rump_up controls the speed of achieving full-blown process (activation factor almost 1.0)
+float activate(float activate_pos, float current_pos, float rump_up, float process) {
+    float activation =  (1.0 - exp((activate_pos - current_pos) * rump_up));
+    activation = max(0.0, activation);
+    return activation * process;
+}
+
+vec3 activate(float activate_pos, float current_pos, float rump_up, vec3 process) {
+    float factor = activate(activate_pos, current_pos, rump_up, 1.0);
+    return process * factor;
+}
+
 /// (x, y) is gradient and z is z position of the wave
 vec3 effect_of_wave(float strength, vec3 center, float start, vec3 at_pos) {
     float wave_length = 0.05 + 0.15 * strength; // units
@@ -25,12 +38,11 @@ vec3 effect_of_wave(float strength, vec3 center, float start, vec3 at_pos) {
     float time_arg = time_kf * to_seconds * (time - start);
 
     float wave_arg = dist_arg + time_arg;
-    if (wave_arg > 0.0) {
-        return vec3(0.0, 0.0, 0.0);
-    }
     float amplitude = strength * 0.1 * - exp(wave_arg * 0.02);
+    amplitude = activate(0.0, -wave_arg, 50.0, amplitude);
     vec3 gradient = (center - at_pos) / (dist + 0.000001) * amplitude * dist_kf * cos(wave_arg);
-    gradient *= 1.0 - exp(-dist * 50.0);
+    gradient = activate(0.0, dist, 50.0, gradient);
+    gradient = activate(0.0, -wave_arg, 1.0, gradient);
     return vec3(gradient.xy, amplitude * sin(wave_arg));
 }
 
